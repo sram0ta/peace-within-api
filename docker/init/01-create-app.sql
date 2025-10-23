@@ -1,0 +1,11 @@
+DO
+$$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'app') THEN
+CREATE ROLE app WITH LOGIN PASSWORD 'secret' SUPERUSER;
+END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_database WHERE datname = 'app') THEN
+    CREATE DATABASE app OWNER app ENCODING 'UTF8';
+END IF;
+END
+$$;
