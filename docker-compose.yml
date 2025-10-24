@@ -53,20 +53,20 @@ services:
       - redisdata:/data
     networks: [appnet]
 
-  queue:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: laravel-queue
-    working_dir: /var/www/html
-    depends_on:
-      - app
-      - redis
-      - pg
-    volumes:
-      - ./:/var/www/html
-    command: sh -lc "php artisan queue:work --tries=3 --sleep=1"
-    networks: [appnet]
+  rabbitmq:
+      image: rabbitmq:3.13-management
+      ports:
+          - "5672:5672"      # AMQP
+          - "15672:15672"    # Web UI
+      environment:
+          RABBITMQ_DEFAULT_USER: guest
+          RABBITMQ_DEFAULT_PASS: guest
+      healthcheck:
+          test: [ "CMD", "rabbitmq-diagnostics", "-q", "ping" ]
+          interval: 10s
+          timeout: 5s
+          retries: 5
+      networks: [appnet]
 
 volumes:
   pgdata:

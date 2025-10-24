@@ -1,0 +1,98 @@
+"Дата (сущность из таблицы dates)"
+type AuthPayload {
+    access_token: String!
+    token_type: String!
+    expires_in: Int!
+    user: User!
+}
+
+extend type Mutation {
+    login(email: String!, password: String!): AuthPayload!
+    @field(resolver: "App\\GraphQL\\Mutations\\AuthMutator@login")
+
+    refresh: AuthPayload!
+    @field(resolver: "App\\GraphQL\\Mutations\\AuthMutator@refresh")
+    @guard(with: ["api"])
+
+    logout: Boolean!
+    @field(resolver: "App\\GraphQL\\Mutations\\AuthMutator@logout")
+    @guard(with: ["api"])
+}
+
+extend type Query {
+    me: User @field(resolver: "App\\GraphQL\\Queries\\MeQuery@__invoke") @guard(with: ["api"])
+}
+
+type Date {
+  id: ID!
+  title: String!
+  value: String!
+  created_at: DateTime!
+  updated_at: DateTime!
+  tasks: [Task!]! @hasMany(model: "App\\Models\\Task", relation: "tasks")
+}
+
+"Пользователь"
+type User {
+  id: ID!
+  name: String!
+  email: String!
+  created_at: DateTime!
+  updated_at: DateTime!
+  tasks: [Task!]! @hasMany(model: "App\\Models\\Task", relation: "tasks")
+}
+
+"Задача"
+type Task {
+  id: ID!
+  title: String!
+  repeat: Boolean!
+  created_at: DateTime!
+  updated_at: DateTime!
+
+  "Владелец задачи"
+  user: User! @belongsTo(model: "App\\Models\\User", relation: "user")
+
+  "Привязанная дата"
+  date: Date! @belongsTo(model: "App\\Models\\CalendarDate", relation: "date")
+}
+
+type Query {
+  users: [User!]! @all(model: "App\\Models\\User")
+  user(id: ID!): User @find(model: "App\\Models\\User")
+
+  dates: [Date!]! @all(model: "App\\Models\\CalendarDate")
+  date(id: ID!): Date @find(model: "App\\Models\\CalendarDate")
+
+  tasks: [Task!]! @all(model: "App\\Models\\Task")
+  task(id: ID!): Task @find(model: "App\\Models\\Task")
+}
+
+type Mutation {
+  # Users
+  createUser(name: String!, email: String!, password: String!): User
+    @create(model: "App\\Models\\User", fillable: ["name","email","password"])
+
+  updateUser(id: ID!, name: String, email: String, password: String): User
+    @update(model: "App\\Models\\User", find: "id", fillable: ["name","email","password"])
+
+  deleteUser(id: ID!): User @delete(model: "App\\Models\\User", find: "id")
+
+  # Dates
+  createDate(title: String!, value: String!): Date
+    @create(model: "App\\Models\\CalendarDate", fillable: ["title","value"])
+
+  updateDate(id: ID!, title: String, value: String): Date
+    @update(model: "App\\Models\\CalendarDate", find: "id", fillable: ["title","value"])
+
+  deleteDate(id: ID!): Date @delete(model: "App\\Models\\CalendarDate", find: "id")
+
+  # Tasks
+  createTask(user_id: ID!, title: String!, repeat: Boolean = false, date_id: ID!): Task
+    @create(model: "App\\Models\\Task", fillable: ["user_id","title","repeat","date_id"])
+
+  updateTask(id: ID!, user_id: ID, title: String, repeat: Boolean, date_id: ID): Task
+    @update(model: "App\\Models\\Task", find: "id", fillable: ["user_id","title","repeat","date_id"])
+
+  deleteTask(id: ID!): Task @delete(model: "App\\Models\\Task", find: "id")
+}

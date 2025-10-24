@@ -8,7 +8,7 @@ RUN apk add --no-cache \
 RUN apk add --no-cache --virtual .build-deps \
     $PHPIZE_DEPS libpq-dev
 
-RUN docker-php-ext-install intl mbstring zip opcache pdo_pgsql
+RUN docker-php-ext-install intl mbstring zip opcache pdo_pgsql sockets
 
 RUN pecl install redis \
  && docker-php-ext-enable redis
